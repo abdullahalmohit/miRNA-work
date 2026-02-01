@@ -1,0 +1,62 @@
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+
+# read file (use forward slashes or double backslashes)
+df <- read.csv("C:/Users/mohit/Downloads/gene_probability_counts.csv"
+)
+
+# check data
+print(df)
+
+# convert to long format
+df_long <- pivot_longer(df,
+                        cols = c(High, Low),
+                        names_to = "Probability",
+                        values_to = "Count")
+
+# stacked bar plot
+p <- ggplot(df_long, aes(x = Gene, y = Count, fill = Probability)) +
+  geom_bar(stat = "identity", position = "stack", width = 0.8) +  # center bars
+  scale_x_discrete(drop = FALSE) +
+  theme_classic() +
+  labs(title = "miRNA Targeting Probability (Zea mays)",
+       x = "Gene",
+       y = "Number of miRNAs") +
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.5, size = 10),
+    axis.title = element_text(size = 14),
+    plot.title = element_text(size = 16, face = "bold")
+  )
+
+print(p)
+#save
+ggsave("C:/Users/mohit/Downloads/miRNA_probability_plot.tiff",
+       plot = p,
+       width = 10,
+       height = 6,
+       dpi = 600,
+       compression = "lzw")
+
+#Grouped (side-by-side) bar plot
+ggplot(df_long, aes(x = Gene, y = Count, fill = Probability)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_classic() +
+  labs(title = "High vs Low Probability miRNA Targets",
+       y = "Number of miRNAs",
+       x = "Gene") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+#Percentage stacked bar (good for comparison)
+df_pct <- df_long %>%
+  group_by(Gene) %>%
+  mutate(Percent = Count / sum(Count) * 100)
+
+ggplot(df_pct, aes(x = Gene, y = Percent, fill = Probability)) +
+  geom_bar(stat = "identity") +
+  theme_classic() +
+  labs(title = "Percentage of High vs Low Probability Targets",
+       y = "Percent",
+       x = "Gene") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
